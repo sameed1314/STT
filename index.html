@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Speech-to-Text Converter</title>
+	<style>
+		body {
+			margin: 0;
+			font-family: sans-serif;
+		}
+
+		header {
+			background-color: #0074D9;
+			color: #FFFFFF;
+			padding: 20px;
+			text-align: center;
+		}
+
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+		}
+
+		label {
+			color: #0074D9;
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+
+		input[type="file"] {
+			display: none;
+		}
+
+		.custom-file-upload {
+			background-color: #0074D9;
+			border: none;
+			color: #FFFFFF;
+			padding: 10px 20px;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+
+		.custom-file-upload:hover {
+			background-color: #001F3F;
+		}
+
+		input[type="submit"] {
+			background-color: #2ECC40;
+			border: none;
+			color: #FFFFFF;
+			padding: 10px 20px;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			margin-top: 20px;
+		}
+
+		input[type="submit"]:hover {
+			background-color: #27AE60;
+		}
+
+		.output {
+			display: none;
+			margin-top: 50px;
+			text-align: center;
+		}
+
+		h2 {
+			color: #0074D9;
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+
+		p {
+			font-size: 18px;
+			margin-bottom: 10px;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<h1>Speech-to-Text Converter</h1>
+	</header>
+
+	<form method="POST" action="{{ url_for('convert') }}" enctype="multipart/form-data" onsubmit="convertAudio(event)">
+		<label for="fileInput">Select an audio file</label>
+		<label for="fileInput" class="custom-file-upload">Upload</label>
+		<input type="file" id="fileInput" name="file" accept="audio/*" onchange="updateFileName()"><br><br>
+		<span id="fileName"></span>
+		<input type="submit" value="Convert">
+	</form>
+
+	<div class="output" id="output">
+		<h2>Output</h2>
+		<p id="english"></p>
+		<p id="hindi"></p>
+	</div>
+
+	<script>
+		function updateFileName() {
+			const fileInput = document.getElementById('fileInput');
+			const fileName = document.getElementById('fileName');
+			fileName.innerText = fileInput.value.split('\\').pop();
+		}
+
+		function convertAudio(event) {
+			event.preventDefault();
+			const fileInput = document.getElementById('fileInput');
+			const file = fileInput.files[0];
+
+			const formData = new FormData();
+			formData.append('file', file);
+
+			fetch('{{ url_for("convert") }}', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => response.json())
+			.then(data => {
+				const outputDiv = document.getElementById('output');
+				outputDiv.style.display = 'block';
+				const englishP = document.getElementById('english');
+				englishP.innerHTML = `English: ${data.result.English}`;
+				const hindiP = document.getElementById('hindi');
+				hindiP.innerHTML = `Hindi: ${data.result.Hindi}`;
+			})
+			.catch(error => {
+				console.error(error);
+			});
+		}
+	</script>
+</body>
